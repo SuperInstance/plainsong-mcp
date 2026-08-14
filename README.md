@@ -18,7 +18,12 @@ pip install git+https://github.com/SuperInstance/tapscript-mcp
 
 That brings in the compiler as well. Neither has any other dependency: the
 protocol, both transports, the session store and the compiler itself are
-written against the standard library.
+written against the standard library. Python 3.10 or newer.
+
+The compiler is currently pulled from a branch of
+[tapscript-studio](https://github.com/SuperInstance/tapscript-studio) rather
+than from its default branch, because the package this builds on is still in
+review there. Installing works; the pin moves the day that merges.
 
 ## Point a client at it
 
@@ -75,15 +80,35 @@ the vocabulary [fleet-jepa-midi](https://github.com/SuperInstance/fleet-jepa-mid
 perceives. That lets a bandleader read a written score, and makes a corpus of
 notation usable as labelled training data.
 
+## Where this came from
+
+This began inside the compiler's repository and was extracted once it was clear
+it had become its own thing rather than a feature of the compiler. Two names had
+also collided along the way: the analysis of who hears what on a physical stage,
+and a session shared by several agents, were both called "ensemble". The first
+is now `tapscript stage` and lives with the compiler; the second is what this
+repository means by the word.
+
+The compiler still ships a copy of this server, which is what its `tapscript
+mcp` command runs. That copy is being retired — install from here.
+
 ## Status
 
 The protocol is exercised by a test suite that drives the server with real
 JSON-RPC: the `initialize` handshake, `tools/list`, `tools/call`, malformed
 input, unknown methods, notifications, and a tool that raises. Concurrency is
-tested with threads racing for the same voice.
+tested with threads racing for the same voice, and merge determinism is checked
+by writing the same parts in three different orders and comparing bytes rather
+than assuming.
+
+CI runs the suite on Python 3.10 through 3.13 across Linux, macOS and Windows,
+and then speaks the protocol to the built server over a pipe, so a handshake
+that regresses fails the build rather than a mock of one.
 
 No third-party MCP client has connected to it yet. The protocol behaviour is
-verified against the specification rather than against a particular client.
+verified against the specification rather than against a particular client —
+strong evidence, and not the same thing. Doing that is the most useful thing
+anyone could contribute.
 
 90 tests.
 

@@ -20,7 +20,14 @@ classifiers = [
 # The compiler this serves. Nothing else -- the protocol, both transports and
 # the session store are written against the standard library, exactly as
 # tapscript itself is.
-dependencies = ["tapscript @ git+https://github.com/SuperInstance/tapscript-studio@master"]
+#
+# Pinned to a branch, temporarily. The `tapscript` package this needs is in
+# tapscript-studio#1 and has not reached master, which still carries the older
+# `src/` layout and no importable `tapscript`. Move this back to @master the day
+# that lands -- it is the only line that has to change.
+dependencies = [
+    "tapscript @ git+https://github.com/SuperInstance/tapscript-studio@claude/init-1wgqn0",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff>=0.5"]
