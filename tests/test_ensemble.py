@@ -17,9 +17,10 @@ from pathlib import Path
 from unittest import mock
 
 from tapscript.agent.tools import Sandbox, ToolRegistry
+from tapscript.runtime.config import load_config
+
 from tapscript_mcp import ensemble
 from tapscript_mcp.server import Server
-from tapscript.runtime.config import load_config
 
 BASS = "[A]\n@bass | a1 . e2 . | f1 . c2 . |\n"
 BASS_REVISED = "[A]\n@bass | a1 e2 a2 e2 | f1 c2 f2 c2 |\n"

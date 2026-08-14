@@ -12,6 +12,7 @@ import sys
 
 from tapscript.runtime.config import load_config
 from tapscript.version import __version__
+
 from .server import Server, serve_http, serve_stdio
 
 

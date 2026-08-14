@@ -28,6 +28,7 @@ from urllib.parse import urlparse
 
 from tapscript.runtime.config import Config, load_config
 from tapscript.version import __version__
+
 from . import protocol
 from . import tools as mcp_tools
 from .protocol import Dispatcher, RpcError

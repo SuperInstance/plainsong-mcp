@@ -18,11 +18,12 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 from tapscript.agent.tools import Sandbox, ToolRegistry
+from tapscript.runtime.config import load_config
+
 from tapscript_mcp import features, protocol
 from tapscript_mcp.protocol import Dispatcher
 from tapscript_mcp.resources import NotFound, Resources
 from tapscript_mcp.server import PROTOCOL_VERSION, Server, build_http_handler
-from tapscript.runtime.config import load_config
 
 NOTATION = """**TRACK: Protocol Sample**
 [MetaData]

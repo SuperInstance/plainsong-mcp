@@ -36,6 +36,7 @@ def _server(directory: Path) -> Any:
     """A server whose tools can only reach *directory*."""
     from tapscript.agent.tools import Sandbox, ToolRegistry
     from tapscript.runtime.config import load_config
+
     from .server import Server
 
     config = load_config()
@@ -189,6 +190,7 @@ def check_merge_is_deterministic() -> tuple[bool, str]:
 def check_features() -> tuple[bool, str]:
     """Sixteen features per bar, in range, and the same every time."""
     from tapscript.notation import arrange, parse
+
     from . import features
 
     arrangement = arrange(parse(SAMPLE))
