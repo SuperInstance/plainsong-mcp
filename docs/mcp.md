@@ -4,9 +4,9 @@ TapScript speaks the Model Context Protocol, so an agent can drive the whole
 system directly rather than shelling out to the CLI and reading text back.
 
 ```bash
-python3 -m tapscript.mcp          # stdio: what an MCP client launches
-python3 -m tapscript mcp          # the same thing through the CLI
-python3 -m tapscript.mcp --http   # loopback HTTP, for several clients at once
+tapscript-mcp                     # console script: what an MCP client launches
+python3 -m tapscript_mcp          # the same thing via module invocation
+python3 -m tapscript_mcp --http   # loopback HTTP, for several clients at once
 ```
 
 Point a client at it. For Claude Code, `~/.claude/mcp.json` or the project's:
@@ -15,8 +15,7 @@ Point a client at it. For Claude Code, `~/.claude/mcp.json` or the project's:
 {
   "mcpServers": {
     "tapscript": {
-      "command": "python3",
-      "args": ["-m", "tapscript.mcp"],
+      "command": "tapscript-mcp",
       "cwd": "/path/to/your/project"
     }
   }
@@ -63,7 +62,7 @@ That means the tool surface is roughly:
   `ensemble_status` (see [ensemble.md](ensemble.md))
 - **Analysis** — `analyze_features`, `apply_directives`
 - **Performance** — `stage_reference`, `ensemble_report`, `speech_profiles`,
-  `directive_reference`, `conduct_score` (see [performance.md](performance.md))
+  `directive_reference`, `conduct_score` (see [performance.md](https://github.com/SuperInstance/tapscript-studio/blob/master/docs/performance.md))
 
 ## Errors, and what is not one
 
@@ -106,7 +105,7 @@ client's context would be worse than useless; `search_library` is the way in.
 Same messages, same bodies, one JSON-RPC message per POST:
 
 ```bash
-python3 -m tapscript.mcp --http --port 8766
+python3 -m tapscript_mcp --http --port 8766
 
 curl -s localhost:8766 -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
@@ -130,7 +129,7 @@ fleet-jepa-midi's bandleader consumes:
     bass_register  treble_activity  dynamic_range   sustain_ratio
 
 Each is normalised into roughly `[0, 1]` — `contour_direction` alone is signed —
-against the fixed references in `tapscript/mcp/features.py`, not against the
+against the fixed references in `tapscript_mcp/features.py`, not against the
 piece itself. Normalising against the piece would make a bar's numbers depend on
 which other bars you happened to include, and two agents analysing two excerpts
 would disagree about the same bar.
@@ -164,7 +163,7 @@ different shape, the tool says so and the rest of the server carries on.
 ```bash
 python3 -m tapscript spec --tag mcp
 python3 -m unittest tests.test_mcp tests.test_ensemble
-python3 -m tapscript.mcp --list-tools
+python3 -m tapscript_mcp --list-tools
 ```
 
 The spec drives a real server with real JSON-RPC messages, including malformed

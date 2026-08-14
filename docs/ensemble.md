@@ -10,7 +10,7 @@ This is the layer that makes that safe. It is served over MCP (see
 [mcp.md](mcp.md)) and the tools are also available to the built-in agent.
 
 > Not to be confused with `tapscript ensemble`, which reports what a listener on
-> a physical stage hears. That is [performance.md](performance.md).
+> a physical stage hears. That is [performance.md](https://github.com/SuperInstance/tapscript-studio/blob/master/docs/performance.md).
 
 ## A session is a directory
 
