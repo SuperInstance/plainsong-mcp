@@ -72,7 +72,34 @@ def main(argv: list[str] | None = None) -> int:
         return serve_http(server, config=config, host=args.host, port=args.port)
 
     print(f"tapscript mcp {__version__} on stdio", file=sys.stderr)
-    return serve_stdio(server)
+    try:
+        return serve_stdio(server)
+    finally:
+        _detach_stdout_if_broken()
+
+
+def _detach_stdout_if_broken() -> None:
+    """Keep interpreter shutdown from re-raising on a pipe we know is closed.
+
+    Python flushes stdout on the way out; if the client is gone that raises
+    again and prints `Exception ignored in: <_io.TextIOWrapper name='<stdout>'>`
+    after we have already decided the disconnect was clean. Redirecting the
+    descriptor stops it.
+
+    This belongs here and not in `serve_stdio`, which is a library function that
+    also runs inside other people's processes -- a test runner, an embedding
+    host. Reassigning file descriptor 1 out from under one of those breaks
+    everything downstream of it. Only the entry point owns the process.
+    """
+    import os
+
+    try:
+        sys.stdout.flush()
+    except (BrokenPipeError, ValueError):
+        try:
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        except (OSError, ValueError, AttributeError):
+            pass
 
 
 if __name__ == "__main__":
