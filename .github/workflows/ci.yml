@@ -33,10 +33,18 @@ jobs:
       - name: Speak the protocol
         shell: bash
         run: |
+          # Through a file rather than a pipe. `| grep -q` closes the pipe on
+          # its first match, and this shell runs with pipefail, so the server
+          # stopping on a broken pipe reddened the build -- a race decided by
+          # how fast the interpreter got through the second reply.
           printf '%s\n' \
             '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' \
             '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
-            | python -m tapscript_mcp | grep -q '"tools"'
+            > handshake.jsonl
+          python -m tapscript_mcp < handshake.jsonl > answers.jsonl
+          grep -q '"protocolVersion"' answers.jsonl
+          grep -q '"tools"' answers.jsonl
+          test "$(wc -l < answers.jsonl)" -eq 2
 
   lint:
     runs-on: ubuntu-latest
