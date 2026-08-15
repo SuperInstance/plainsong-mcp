@@ -21,12 +21,11 @@ classifiers = [
 # the session store are written against the standard library, exactly as
 # tapscript itself is.
 #
-# Pinned to a branch, temporarily. The `tapscript` package this needs is in
-# tapscript-studio#1 and has not reached master, which still carries the older
-# `src/` layout and no importable `tapscript`. Move this back to @master the day
-# that lands -- it is the only line that has to change.
+# Tracking master rather than a release, because tapscript is not on PyPI yet.
+# Swap this for a version specifier (`tapscript>=1.0`) the day it publishes --
+# it is the only line that has to change.
 dependencies = [
-    "tapscript @ git+https://github.com/SuperInstance/tapscript-studio@claude/init-1wgqn0",
+    "tapscript @ git+https://github.com/SuperInstance/tapscript-studio@master",
 ]
 
 [project.optional-dependencies]
