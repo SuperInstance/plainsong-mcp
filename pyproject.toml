@@ -21,11 +21,11 @@ classifiers = [
 # the session store are written against the standard library, exactly as
 # plainsong itself is.
 #
-# Tracking master rather than a release, because plainsong is not on PyPI yet.
-# Swap this for a version specifier (`plainsong>=1.0`) the day it publishes --
-# it is the only line that has to change.
+# 1.1.0 is the first release that publishes `plainsong.features`, which this
+# package re-exports rather than duplicating. Below that it would install and
+# then fail on import, so the floor is a real requirement and not caution.
 dependencies = [
-    "plainsong @ git+https://github.com/SuperInstance/plainsong@master",
+    "plainsong>=1.1.0",
 ]
 
 [project.optional-dependencies]

@@ -20,10 +20,10 @@ That brings in the compiler as well. Neither has any other dependency: the
 protocol, both transports, the session store and the compiler itself are
 written against the standard library. Python 3.10 or newer.
 
-The compiler is currently pulled from a branch of
-[plainsong](https://github.com/SuperInstance/plainsong) rather
-than from its default branch, because the package this builds on is still in
-review there. Installing works; the pin moves the day that merges.
+The compiler comes from PyPI as `plainsong>=1.1.0`. That is the first release
+carrying `plainsong.features`, the per-bar analysis this package re-exports
+rather than duplicating, so the floor is a real requirement: below it the
+install succeeds and the import fails.
 
 ## Point a client at it
 
