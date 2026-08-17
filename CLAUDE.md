@@ -19,6 +19,15 @@ so `plainsong/mcp/` still exists over there. That copy is on its way out. Until
 it goes, a fix made here has to be made there too, and vice versa — which is
 exactly the drift the split was meant to end, so the sooner it goes the better.
 
+One piece of that is now finished. `plainsong_mcp/features.py` was 300 lines
+duplicated **byte for byte** with `plainsong/features.py`, which is the drift
+this rule exists to prevent, sitting in plain sight. Per-bar analysis is a fact
+about music rather than about MCP, so it belongs to the compiler; it lives there
+now and this module is a re-export. `plainsong_mcp.features` still imports and
+returns the same objects — `features.BarFeatures is plainsong.features.BarFeatures`
+— so nothing that used it had to change. Do not reintroduce an implementation
+here: if the analysis needs something, it needs it in the compiler.
+
 ## Commands
 
 ```bash
