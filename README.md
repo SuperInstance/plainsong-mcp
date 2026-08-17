@@ -1,19 +1,19 @@
-# tapscript-mcp
+# plainsong-mcp
 
-A Model Context Protocol server for [TapScript](https://github.com/SuperInstance/tapscript-studio),
+A Model Context Protocol server for [Plainsong](https://github.com/SuperInstance/plainsong),
 so any agent can read, write and compile music notation — and so several agents
 can work on one score at the same time without overwriting each other.
 
 ```bash
-tapscript-mcp                 # JSON-RPC over stdio, what most clients expect
-tapscript-mcp --http          # loopback HTTP, for remote and multi-agent setups
-tapscript-mcp --list-tools    # what it exposes
+plainsong-mcp                 # JSON-RPC over stdio, what most clients expect
+plainsong-mcp --http          # loopback HTTP, for remote and multi-agent setups
+plainsong-mcp --list-tools    # what it exposes
 ```
 
 ## Install
 
 ```bash
-pip install git+https://github.com/SuperInstance/tapscript-mcp
+pip install git+https://github.com/SuperInstance/plainsong-mcp
 ```
 
 That brings in the compiler as well. Neither has any other dependency: the
@@ -21,7 +21,7 @@ protocol, both transports, the session store and the compiler itself are
 written against the standard library. Python 3.10 or newer.
 
 The compiler is currently pulled from a branch of
-[tapscript-studio](https://github.com/SuperInstance/tapscript-studio) rather
+[plainsong](https://github.com/SuperInstance/plainsong) rather
 than from its default branch, because the package this builds on is still in
 review there. Installing works; the pin moves the day that merges.
 
@@ -32,15 +32,15 @@ For a client that launches servers over stdio, the usual shape is:
 ```json
 {
   "mcpServers": {
-    "tapscript": {
-      "command": "tapscript-mcp"
+    "plainsong": {
+      "command": "plainsong-mcp"
     }
   }
 }
 ```
 
 Then ask it for music. The server exposes 27 tools, which is everything the
-`tapscript` CLI can do — write and validate notation, compile to MIDI and
+`plainsong` CLI can do — write and validate notation, compile to MIDI and
 audio, transpose, search a library of several thousand pieces, analyse what
 each listener on a stage actually hears, and probe what the host machine can
 render.
@@ -86,10 +86,10 @@ This began inside the compiler's repository and was extracted once it was clear
 it had become its own thing rather than a feature of the compiler. Two names had
 also collided along the way: the analysis of who hears what on a physical stage,
 and a session shared by several agents, were both called "ensemble". The first
-is now `tapscript stage` and lives with the compiler; the second is what this
+is now `plainsong stage` and lives with the compiler; the second is what this
 repository means by the word.
 
-The compiler still ships a copy of this server, which is what its `tapscript
+The compiler still ships a copy of this server, which is what its `plainsong
 mcp` command runs. That copy is being retired — install from here.
 
 ## Status

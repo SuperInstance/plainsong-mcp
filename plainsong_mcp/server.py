@@ -1,12 +1,12 @@
 """The Model Context Protocol server.
 
-Everything TapScript can do, offered to any agent that speaks MCP: the tools
+Everything Plainsong can do, offered to any agent that speaks MCP: the tools
 the built-in agent uses, the notation library and the specs as resources, the
 two agent prompts, and the ensemble session that lets several agents write one
 score at once.
 
 The tool list is not written here. It is
-:meth:`~tapscript.agent.tools.ToolRegistry.specs`, which already produces JSON
+:meth:`~plainsong.agent.tools.ToolRegistry.specs`, which already produces JSON
 Schema, so a tool added anywhere in the codebase appears over the protocol
 without this file changing. That is the same reason the interfaces all call
 ``pipeline.compile_text``: one definition, three ways in.
@@ -26,8 +26,8 @@ import threading
 from typing import Any
 from urllib.parse import urlparse
 
-from tapscript.runtime.config import Config, load_config
-from tapscript.version import __version__
+from plainsong.runtime.config import Config, load_config
+from plainsong.version import __version__
 
 from . import protocol
 from . import tools as mcp_tools
@@ -41,16 +41,16 @@ RESOURCE_NOT_FOUND = -32002
 """MCP's own code for a URI that resolves to nothing. The standard codes carry
 everything else."""
 
-SERVER_NAME = "tapscript"
+SERVER_NAME = "plainsong"
 
 PROMPTS = {
     "composer": "Write and revise notation. Reads the reference, writes, compiles, reports.",
     "builder": "Adapt this installation to the machine it is on and verify the result.",
 }
 
-INSTRUCTIONS = """TapScript compiles plain-text music notation to MIDI and audio.
+INSTRUCTIONS = """Plainsong compiles plain-text music notation to MIDI and audio.
 
-Read tapscript://notation-reference before writing notation for the first time.
+Read plainsong://notation-reference before writing notation for the first time.
 Write music with write_score or ensemble_write_part rather than write_file: both
 parse the notation before anything reaches disk.
 
@@ -73,7 +73,7 @@ class Server:
         session_root: Any = None,
         allow_dangerous: bool = False,
     ) -> None:
-        from tapscript.agent.tools import ToolRegistry
+        from plainsong.agent.tools import ToolRegistry
 
         self.config = config or load_config()
         self.registry = registry or ToolRegistry(
@@ -128,7 +128,7 @@ class Server:
                 "resources": {"subscribe": False, "listChanged": False},
                 "prompts": {"listChanged": False},
             },
-            "serverInfo": {"name": SERVER_NAME, "title": "TapScript", "version": __version__},
+            "serverInfo": {"name": SERVER_NAME, "title": "Plainsong", "version": __version__},
             "instructions": INSTRUCTIONS,
         }
 
@@ -218,7 +218,7 @@ class Server:
         }
 
     def get_prompt(self, params: dict[str, Any]) -> dict[str, Any]:
-        from tapscript.agent.kernel import load_prompt
+        from plainsong.agent.kernel import load_prompt
 
         name = params.get("name")
         if not isinstance(name, str) or name not in PROMPTS:
@@ -265,7 +265,7 @@ def build_http_handler(server: Server):
     from http.server import BaseHTTPRequestHandler
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = f"tapscript-mcp/{__version__}"
+        server_version = f"plainsong-mcp/{__version__}"
         protocol_version = "HTTP/1.1"
 
         def log_message(self, format: str, *args: Any) -> None:  # quieter default
@@ -346,7 +346,7 @@ def serve_http(
         return 1
 
     url = f"http://{host}:{http.server_port}"
-    lines = [f"tapscript mcp on {url}", f"workspace {config.paths.workspace}"]
+    lines = [f"plainsong mcp on {url}", f"workspace {config.paths.workspace}"]
     if host not in ("127.0.0.1", "localhost", "::1"):
         lines.append(
             "warning: bound to a non-loopback address -- anyone who can reach this port "

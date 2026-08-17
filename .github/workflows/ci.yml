@@ -25,7 +25,7 @@ jobs:
         run: pip install .
 
       - name: Verify the specs
-        run: python -m tapscript spec --tag mcp || python -m tapscript spec
+        run: python -m plainsong spec --tag mcp || python -m plainsong spec
 
       - name: Run the tests
         run: python -m unittest discover -s tests -v
@@ -41,7 +41,7 @@ jobs:
             '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' \
             '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
             > handshake.jsonl
-          python -m tapscript_mcp < handshake.jsonl > answers.jsonl
+          python -m plainsong_mcp < handshake.jsonl > answers.jsonl
           grep -q '"protocolVersion"' answers.jsonl
           grep -q '"tools"' answers.jsonl
           test "$(wc -l < answers.jsonl)" -eq 2
@@ -54,4 +54,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ruff
-      - run: ruff check tapscript_mcp tests
+      - run: ruff check plainsong_mcp tests

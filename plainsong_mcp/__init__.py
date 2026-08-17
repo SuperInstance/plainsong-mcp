@@ -1,11 +1,11 @@
-"""TapScript over the Model Context Protocol.
+"""Plainsong over the Model Context Protocol.
 
 An MCP client -- Claude Code, an editor, an SDK script, a fleet of agents --
 gets the compiler, the library, the specs and the ensemble session without
 shelling out to the CLI.
 
-    python -m tapscript.mcp              # stdio, what most clients start
-    python -m tapscript.mcp --http       # loopback HTTP, for several clients
+    python -m plainsong.mcp              # stdio, what most clients start
+    python -m plainsong.mcp --http       # loopback HTTP, for several clients
 
 The pieces: :mod:`protocol` is JSON-RPC and nothing else, :mod:`server` maps MCP
 methods onto the system, :mod:`resources` is what can be read, :mod:`tools` is

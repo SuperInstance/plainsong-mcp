@@ -3,9 +3,9 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tapscript-mcp"
+name = "plainsong-mcp"
 version = "1.0.0"
-description = "A Model Context Protocol server for TapScript: many agents, one score."
+description = "A Model Context Protocol server for Plainsong: many agents, one score."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
@@ -19,27 +19,27 @@ classifiers = [
 
 # The compiler this serves. Nothing else -- the protocol, both transports and
 # the session store are written against the standard library, exactly as
-# tapscript itself is.
+# plainsong itself is.
 #
-# Tracking master rather than a release, because tapscript is not on PyPI yet.
-# Swap this for a version specifier (`tapscript>=1.0`) the day it publishes --
+# Tracking master rather than a release, because plainsong is not on PyPI yet.
+# Swap this for a version specifier (`plainsong>=1.0`) the day it publishes --
 # it is the only line that has to change.
 dependencies = [
-    "tapscript @ git+https://github.com/SuperInstance/tapscript-studio@master",
+    "plainsong @ git+https://github.com/SuperInstance/plainsong@master",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff>=0.5"]
 
 [project.scripts]
-tapscript-mcp = "tapscript_mcp.__main__:main"
+plainsong-mcp = "plainsong_mcp.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/SuperInstance/tapscript-mcp"
-Compiler = "https://github.com/SuperInstance/tapscript-studio"
+Homepage = "https://github.com/SuperInstance/plainsong-mcp"
+Compiler = "https://github.com/SuperInstance/plainsong"
 
 [tool.setuptools.packages.find]
-include = ["tapscript_mcp*"]
+include = ["plainsong_mcp*"]
 
 [tool.ruff]
 line-length = 108

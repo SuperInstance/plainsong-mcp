@@ -8,8 +8,8 @@ line.
 
     <workspace>/ensemble/<name>/
         manifest.json      the header, the form, the voices and the version
-        parts/<voice>.tap  one file per voice, written by its owner
-        score.tap          the merged result -- generated, never hand-edited
+        parts/<voice>.song one file per voice, written by its owner
+        score.song         the merged result -- generated, never hand-edited
         log.jsonl          one line per accepted change, oldest first
 
 Concurrency
@@ -39,12 +39,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from tapscript.notation.ir import ROLE_CHORDS, ROLE_LYRICS, ROLE_MELODY, ROLE_NOTE, ROLE_PLAYER, Score
-from tapscript.runtime.paths import Paths, default_paths
+from plainsong.notation.ir import ROLE_CHORDS, ROLE_LYRICS, ROLE_MELODY, ROLE_NOTE, ROLE_PLAYER, Score
+from plainsong.runtime.paths import Paths, default_paths
 
 MANIFEST = "manifest.json"
 LOG = "log.jsonl"
-SCORE = "score.tap"
+SCORE = "score.song"
 PARTS = "parts"
 LOCK = ".lock"
 
@@ -314,7 +314,7 @@ class Session:
         return self.directory / LOG
 
     def part_path(self, voice: str) -> Path:
-        return self.directory / PARTS / f"{voice}.tap"
+        return self.directory / PARTS / f"{voice}.song"
 
     def exists(self) -> bool:
         return self.manifest_path.is_file()
@@ -345,7 +345,7 @@ class Session:
             return {}
         return {
             path.stem: path.read_text(encoding="utf-8")
-            for path in sorted(directory.glob("*.tap"))
+            for path in sorted(directory.glob("*.song"))
         }
 
     def entries(self, limit: int = 0) -> list[dict[str, Any]]:
@@ -637,7 +637,7 @@ class Session:
         """The short form: version, voices, bars, and whether the score compiles."""
         manifest = self.manifest()
         merged = self.merge(manifest)
-        from tapscript.notation import parse
+        from plainsong.notation import parse
 
         score = parse(merged)
         return {
@@ -661,7 +661,7 @@ class Session:
 
     def render(self, audio: bool = False, config: Any = None) -> dict[str, Any]:
         """Compile the merged score into the session directory."""
-        from tapscript.pipeline import compile_text
+        from plainsong.pipeline import compile_text
 
         merged = self.merge()
         _write_atomic(self.score_path, merged)
@@ -810,7 +810,7 @@ def _row_order(parts: dict[str, str]) -> list[str]:
 
 def _note_count(score: Score) -> int:
     """How many notes the part actually makes, which is what an author asks about."""
-    from tapscript.notation import arrange
+    from plainsong.notation import arrange
 
     try:
         return arrange(score).note_count
@@ -820,7 +820,7 @@ def _note_count(score: Score) -> int:
 
 def _validate(document: str, voice: str) -> tuple[Score, list[str]]:
     """Parse a part in its session header and check it only speaks for its voice."""
-    from tapscript.notation import parse
+    from plainsong.notation import parse
 
     score = parse(document)
     problems = [diag.format() for diag in score.errors()]
@@ -873,7 +873,7 @@ def _window(merged: str, manifest: Manifest, bars: str) -> dict[str, Any]:
     bars 5 to 8 of one voice and needs the harmony there and what the others are
     already doing, without reading the whole piece.
     """
-    from tapscript.notation import parse
+    from plainsong.notation import parse
 
     score = parse(merged)
     table = _bar_table(score)

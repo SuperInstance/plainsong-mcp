@@ -23,41 +23,41 @@ tags = ["mcp", "fast", "agent"]
 [[check]]
 id = "handshake"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_handshake"
+run = "plainsong_mcp.selfcheck:check_handshake"
 description = "initialize, tools/list and tools/call complete over real JSON-RPC messages"
 
 [[check]]
 id = "errors"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_protocol_errors"
+run = "plainsong_mcp.selfcheck:check_protocol_errors"
 description = "Bad input gets the right code, notifications get silence, a failing tool is a result"
 
 [[check]]
 id = "resources"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_resources_and_prompts"
+run = "plainsong_mcp.selfcheck:check_resources_and_prompts"
 description = "The documented resources, templates and prompts are all served"
 
 [[check]]
 id = "concurrency"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_ensemble_concurrency"
+run = "plainsong_mcp.selfcheck:check_ensemble_concurrency"
 description = "Two voices written at once both land; a write against an old version is refused"
 
 [[check]]
 id = "merge"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_merge_is_deterministic"
+run = "plainsong_mcp.selfcheck:check_merge_is_deterministic"
 description = "The same parts merge to the same score whatever order they arrived in"
 
 [[check]]
 id = "features"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_features"
+run = "plainsong_mcp.selfcheck:check_features"
 description = "Sixteen features per bar, in range, and the same every time"
 
 [[check]]
 id = "conductor"
 kind = "python"
-run = "tapscript_mcp.selfcheck:check_conductor_bridge"
+run = "plainsong_mcp.selfcheck:check_conductor_bridge"
 description = "Directives reach the conductor, or the tool says the install has none"

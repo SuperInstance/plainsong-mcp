@@ -1,4 +1,4 @@
-"""``python -m tapscript.mcp`` -- the entry point an MCP client is pointed at.
+"""``python -m plainsong.mcp`` -- the entry point an MCP client is pointed at.
 
 Stdio by default, because that is what a client configuration file expects to
 launch. Everything this prints for a person goes to stderr: stdout carries the
@@ -10,18 +10,18 @@ from __future__ import annotations
 import argparse
 import sys
 
-from tapscript.runtime.config import load_config
-from tapscript.version import __version__
+from plainsong.runtime.config import load_config
+from plainsong.version import __version__
 
 from .server import Server, serve_http, serve_stdio
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="python -m tapscript.mcp",
-        description="Serve TapScript over the Model Context Protocol.",
+        prog="python -m plainsong.mcp",
+        description="Serve Plainsong over the Model Context Protocol.",
     )
-    parser.add_argument("--version", action="version", version=f"tapscript {__version__}")
+    parser.add_argument("--version", action="version", version=f"plainsong {__version__}")
     parser.add_argument("--http", action="store_true", help="serve over HTTP instead of stdio")
     parser.add_argument("--host", default="127.0.0.1", help="HTTP bind address (loopback)")
     parser.add_argument("--port", type=int, default=8766, help="HTTP port")
@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.workspace:
         from pathlib import Path
 
-        from tapscript.agent.tools import Sandbox, ToolRegistry
+        from plainsong.agent.tools import Sandbox, ToolRegistry
 
         registry = ToolRegistry(
             sandbox=Sandbox(root=Path(args.workspace)),
@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.http:
         return serve_http(server, config=config, host=args.host, port=args.port)
 
-    print(f"tapscript mcp {__version__} on stdio", file=sys.stderr)
+    print(f"plainsong mcp {__version__} on stdio", file=sys.stderr)
     try:
         return serve_stdio(server)
     finally:

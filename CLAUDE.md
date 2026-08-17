@@ -4,18 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An MCP server for TapScript. It serves the compiler's own tools over the Model
+An MCP server for Plainsong. It serves the compiler's own tools over the Model
 Context Protocol, and adds the one thing that is not in the compiler: an
 *ensemble session*, where several agents write one score at the same time and
 each owns a voice.
 
-It depends on `SuperInstance/tapscript-studio` and that repository does not
+It depends on `SuperInstance/plainsong` and that repository does not
 depend on this one. Keep it that way. Anything that belongs to the compiler —
 notation, arranging, rendering, the tool implementations themselves — goes
 there; what lives here is the protocol, the two transports, and the session.
 
-This repository was extracted from tapscript-studio rather than written fresh,
-so `tapscript/mcp/` still exists over there. That copy is on its way out. Until
+This repository was extracted from plainsong rather than written fresh,
+so `plainsong/mcp/` still exists over there. That copy is on its way out. Until
 it goes, a fix made here has to be made there too, and vice versa — which is
 exactly the drift the split was meant to end, so the sooner it goes the better.
 
@@ -23,21 +23,21 @@ exactly the drift the split was meant to end, so the sooner it goes the better.
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 -m ruff check tapscript_mcp tests
-python3 -m tapscript spec --tag mcp
+python3 -m ruff check plainsong_mcp tests
+python3 -m plainsong spec --tag mcp
 
 # Drive the server by hand. This is how the protocol was verified.
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"x","version":"1"}}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
-  | python3 -m tapscript_mcp
+  | python3 -m plainsong_mcp
 
-python3 -m tapscript_mcp --list-tools
-python3 -m tapscript_mcp --http --port 8766
+python3 -m plainsong_mcp --list-tools
+python3 -m plainsong_mcp --http --port 8766
 ```
 
-The tests import `tapscript`. In a checkout that has not installed it, put the
-compiler on the path: `PYTHONPATH=../tapscript-studio python3 -m unittest ...`.
+The tests import `plainsong`. In a checkout that has not installed it, put the
+compiler on the path: `PYTHONPATH=../plainsong python3 -m unittest ...`.
 
 ## The rules that carry over
 
@@ -79,7 +79,7 @@ either, make them agree.
 ## The tool list is not written here
 
 It is the compiler's `ToolRegistry.specs()`, which already emits JSON Schema. A
-tool added anywhere in tapscript appears over the protocol with nothing in this
+tool added anywhere in plainsong appears over the protocol with nothing in this
 repository changing. Do not maintain a second list — that is the same "one of
 everything" rule the compiler keeps, and the reason it keeps it.
 
@@ -103,13 +103,13 @@ The concurrency is the delicate part.
   the validator refuses a part that speaks for a voice other than its own.
 
 "Ensemble" here always means the multi-agent session. What the compiler calls
-`tapscript stage` — who hears what on a physical stage — is a different thing
+`plainsong stage` — who hears what on a physical stage — is a different thing
 that was briefly given the same name, and renaming it was worth doing.
 
 ## Specs
 
 `specs/mcp.toml` states the promises; the checks live in
-`tapscript_mcp/selfcheck.py` and run under the compiler's `tapscript spec`
+`plainsong_mcp/selfcheck.py` and run under the compiler's `plainsong spec`
 harness. A user runs them to find out what works on their machine. A new
 capability wants a spec as well as a test.
 
@@ -122,5 +122,5 @@ capability wants a spec as well as a test.
 - The HTTP transport is loopback-first and refuses cross-origin requests. It
   warns loudly when bound anywhere else, because anyone who can reach the port
   can run every tool against the workspace.
-- The dependency in `pyproject.toml` is pinned to a branch of tapscript-studio
+- The dependency in `pyproject.toml` is pinned to a branch of plainsong
   until that branch merges. See the comment there.

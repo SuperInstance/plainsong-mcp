@@ -18,9 +18,9 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import unquote
 
-from tapscript.runtime.config import Config
+from plainsong.runtime.config import Config
 
-SCHEME = "tapscript"
+SCHEME = "plainsong"
 
 TEXT = "text/plain; charset=utf-8"
 MARKDOWN = "text/markdown; charset=utf-8"
@@ -111,7 +111,7 @@ class Resources:
             Resource(
                 f"{SCHEME}://notation-reference",
                 "notation reference",
-                "How to write TapScript notation. Read this before writing any.",
+                "How to write Plainsong notation. Read this before writing any.",
                 MARKDOWN,
             ),
             Resource(
@@ -167,20 +167,20 @@ class Resources:
     def _notation_reference(self) -> str:
         from pathlib import Path
 
-        # Ask the tapscript package where it lives rather than walking up from
-        # this file. Walking up assumed this module sat inside tapscript/, which
+        # Ask the plainsong package where it lives rather than walking up from
+        # this file. Walking up assumed this module sat inside plainsong/, which
         # stopped being true the moment the server became its own package.
-        import tapscript
+        import plainsong
 
-        reference = Path(tapscript.__file__).resolve().parent / "agent" / "prompts" / "notation.md"
+        reference = Path(plainsong.__file__).resolve().parent / "agent" / "prompts" / "notation.md"
         try:
             return reference.read_text(encoding="utf-8")
         except OSError as exc:
             raise NotFound(f"the notation reference is missing: {exc}") from None
 
     def _capabilities(self) -> str:
-        from tapscript.runtime.capabilities import probe
-        from tapscript.version import __version__
+        from plainsong.runtime.capabilities import probe
+        from plainsong.version import __version__
 
         report = probe()
         return json.dumps(
@@ -202,7 +202,7 @@ class Resources:
         )
 
     def _read_library(self, name: str) -> tuple[str, str]:
-        from tapscript.library import Library
+        from plainsong.library import Library
 
         entry = Library(paths=self.config.paths).find(name)
         if entry is None:
@@ -251,7 +251,7 @@ class Resources:
     # -- sources -------------------------------------------------------------
 
     def _specs(self) -> list[Any]:
-        from tapscript.specs import load_specs
+        from plainsong.specs import load_specs
 
         try:
             return load_specs(self.config.paths)

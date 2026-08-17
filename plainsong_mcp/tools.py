@@ -167,7 +167,7 @@ def register(registry: Any, session_root: Any = None) -> None:
         bars: str = "",
         table: bool = False,
     ) -> Any:
-        from tapscript.notation import arrange, parse
+        from plainsong.notation import arrange, parse
 
         if session:
             try:
@@ -213,8 +213,8 @@ def register(registry: Any, session_root: Any = None) -> None:
         module, problem = _conductor()
         if problem:
             return problem
-        from tapscript.notation import arrange, parse
-        from tapscript.notation.arrange import ArrangeOptions
+        from plainsong.notation import arrange, parse
+        from plainsong.notation.arrange import ArrangeOptions
 
         if session:
             try:
@@ -377,7 +377,7 @@ def register(registry: Any, session_root: Any = None) -> None:
         "syncopation, dynamics and the rest -- so a model can perceive what is written.",
         _schema(
             {
-                "path": _string("A .tap file to analyse."),
+                "path": _string("A .song file to analyse."),
                 "content": _string("Notation to analyse instead of a path."),
                 "session": _string("An ensemble session to analyse instead."),
                 "voice": _string("One voice by name. Default is the whole texture."),
@@ -399,7 +399,7 @@ def register(registry: Any, session_root: Any = None) -> None:
                     "type": ["object", "string", "array"],
                     "description": "The directive JSON. Call directive_reference for the shape.",
                 },
-                "path": _string("A .tap file."),
+                "path": _string("A .song file."),
                 "content": _string("Notation instead of a path."),
                 "session": _string("An ensemble session instead."),
                 "frame": _string("Whose ears: conductor, audience, player:<name>, score."),
@@ -425,10 +425,10 @@ def _conductor() -> tuple[Any, str]:
     the other tools down with it.
     """
     try:
-        from tapscript.perform import conduct as module
+        from plainsong.perform import conduct as module
     except ImportError as exc:
         return None, (
-            "error: this install has no conductor (tapscript.perform.conduct is not "
+            "error: this install has no conductor (plainsong.perform.conduct is not "
             f"importable: {exc}). Everything else on this server still works."
         )
     missing = [name for name in ("read", "apply") if not hasattr(module, name)]

@@ -1,7 +1,7 @@
 """Sixteen numbers per bar.
 
 A model that has to react to music needs a fixed-width view of it. This turns
-an :class:`~tapscript.notation.ir.Arrangement` into one vector per bar, in the
+an :class:`~plainsong.notation.ir.Arrangement` into one vector per bar, in the
 order :data:`FEATURE_NAMES`, each value in roughly ``[0, 1]`` (``contour``
 alone is signed). The layout is the one the fleet-jepa bandleader consumes, so
 a written score and a recorded performance can be described the same way, and

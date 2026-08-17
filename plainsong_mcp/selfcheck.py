@@ -5,7 +5,7 @@ optional dependencies, and writes only inside a temporary directory. They are
 the executable half of the spec: a user runs them to find out whether this
 install can serve MCP, and the build agent runs them after a change.
 
-They live here rather than in ``tapscript/selfcheck.py`` so that deleting
+They live here rather than in ``plainsong/selfcheck.py`` so that deleting
 ``mcp/`` takes its checks with it.
 """
 
@@ -34,8 +34,8 @@ VIOLIN = "[A]\n@violin1 | e4 . a4 . | c5 . f4 . |\n"
 
 def _server(directory: Path) -> Any:
     """A server whose tools can only reach *directory*."""
-    from tapscript.agent.tools import Sandbox, ToolRegistry
-    from tapscript.runtime.config import load_config
+    from plainsong.agent.tools import Sandbox, ToolRegistry
+    from plainsong.runtime.config import load_config
 
     from .server import Server
 
@@ -106,7 +106,7 @@ def check_protocol_errors() -> tuple[bool, str]:
         failing = _call(
             server,
             "tools/call",
-            {"name": "read_file", "arguments": {"path": "nothing-here.tap"}},
+            {"name": "read_file", "arguments": {"path": "nothing-here.song"}},
             identifier=4,
         )
         result = failing.get("result")
@@ -179,7 +179,7 @@ def check_merge_is_deterministic() -> tuple[bool, str]:
             return False, "merge depends on the order the parts arrived in"
         if first.score() != first.score():
             return False, "merge is not repeatable"
-        from tapscript.notation import parse
+        from plainsong.notation import parse
 
         merged = parse(first.score())
         if merged.has_errors:
@@ -189,7 +189,7 @@ def check_merge_is_deterministic() -> tuple[bool, str]:
 
 def check_features() -> tuple[bool, str]:
     """Sixteen features per bar, in range, and the same every time."""
-    from tapscript.notation import arrange, parse
+    from plainsong.notation import arrange, parse
 
     from . import features
 
@@ -219,23 +219,23 @@ def check_resources_and_prompts() -> tuple[bool, str]:
         server = _server(Path(directory))
         listed = _call(server, "resources/list")["result"]["resources"]
         uris = {resource["uri"] for resource in listed}
-        if "tapscript://notation-reference" not in uris:
+        if "plainsong://notation-reference" not in uris:
             return False, f"the notation reference is not listed: {sorted(uris)[:4]}"
 
         templates = _call(server, "resources/templates/list", identifier=2)["result"]
         patterns = {template["uriTemplate"] for template in templates["resourceTemplates"]}
-        for wanted in ("tapscript://library/{name}", "tapscript://session/{name}"):
+        for wanted in ("plainsong://library/{name}", "plainsong://session/{name}"):
             if wanted not in patterns:
                 return False, f"{wanted} is not offered as a template"
 
         read = _call(
-            server, "resources/read", {"uri": "tapscript://capabilities"}, identifier=3
+            server, "resources/read", {"uri": "plainsong://capabilities"}, identifier=3
         )["result"]["contents"][0]
         if not read["text"].strip().startswith("{"):
             return False, "capabilities did not come back as JSON"
 
         missing = _call(
-            server, "resources/read", {"uri": "tapscript://spec/nothing"}, identifier=4
+            server, "resources/read", {"uri": "plainsong://spec/nothing"}, identifier=4
         )
         if "error" not in missing:
             return False, "an unknown resource was not reported as an error"
@@ -278,4 +278,4 @@ def check_conductor_bridge() -> tuple[bool, str]:
         report = json.loads(text)
         if "after" not in report:
             return False, f"the conducted result is missing its summary: {sorted(report)}"
-        return True, "directives read and applied through tapscript.perform.conduct"
+        return True, "directives read and applied through plainsong.perform.conduct"

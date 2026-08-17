@@ -2,7 +2,7 @@
 
 ## 1.0.0
 
-Extracted from `tapscript-studio`, where it grew up as `tapscript/mcp/`. The
+Extracted from `plainsong`, where it grew up as `plainsong/mcp/`. The
 compiler and the agent substrate are different products with different
 audiences, so they are now different repositories.
 
@@ -19,4 +19,4 @@ audiences, so they are now different repositories.
 
 Fixed on extraction: the notation-reference resource resolved its path by
 walking up from its own file, which silently depended on this package sitting
-inside `tapscript/`. It now asks the installed package where it lives.
+inside `plainsong/`. It now asks the installed package where it lives.
