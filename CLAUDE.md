@@ -28,16 +28,18 @@ returns the same objects — `features.BarFeatures is plainsong.features.BarFeat
 — so nothing that used it had to change. Do not reintroduce an implementation
 here: if the analysis needs something, it needs it in the compiler.
 
-`plainsong_mcp/localhost.py` is the same job, half done. It holds the loopback
-check the HTTP transport refuses rebound requests with, and the compiler holds
-an identical `plainsong.runtime.localhost`. It is a copy on purpose and only
-for now: the check was two copies of eight inline lines, both of which got
-`127.evil.example` and `[::1]` wrong in the same way, and a security fix should
-not wait on a release of a different package. `tests/test_localhost.py`
-compares this copy's answers against the compiler's case by case, so they
-cannot drift while both exist. **Collapse it to a re-export** as soon as the
-`plainsong` floor in `pyproject.toml` can be raised to the release carrying
-that module.
+`plainsong_mcp/localhost.py` is the same job, now also finished. It holds the
+loopback check the HTTP transport refuses rebound requests with. It used to be
+a copy on purpose: the check was two copies of eight inline lines, both of
+which got `127.evil.example` and `[::1]` wrong in the same way, and a security
+fix should not wait on a release of a different package. `plainsong` 1.4.0 is
+the first release publishing `plainsong.runtime.localhost`, and the floor in
+`pyproject.toml` is raised to it, so the module is a re-export now —
+`plainsong_mcp.localhost.host_is_local is plainsong.runtime.localhost.host_is_local`
+— the same move `features.py` made. `tests/test_localhost.py` still pins the
+parsing behaviour case by case, plus one test asserting the identity directly,
+so a third copy introduced anywhere in this package cannot drift the way the
+first two did. Do not reintroduce an implementation here.
 
 ## Commands
 

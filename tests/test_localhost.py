@@ -4,11 +4,15 @@ The guard is exercised over a real socket in `test_mcp.py` -- that is where it
 is proved to actually refuse. This file is the parsing, which is where the bugs
 were.
 
-These tests exist in `SuperInstance/plainsong` too, against
-`plainsong.runtime.localhost`, because the module does. That duplication is the
-one being unwound, not a new one: see `plainsong_mcp/localhost.py`. Until the
-floor in `pyproject.toml` can be raised to the `plainsong` release carrying it,
-the check ships here and is tested here.
+`plainsong_mcp/localhost.py` is now a re-export of `plainsong.runtime.localhost`,
+so every test below exercises the compiler's implementation, not a copy of it --
+which is correct: the parsing behaviour still needs to be pinned down from this
+side, since `server.py` and everything else in this package reaches it through
+`plainsong_mcp.localhost` and would not notice if the re-export pointed at the
+wrong thing. `test_this_copy_is_genuinely_the_compilers`, in `TestThereIsOneCopy`
+below, is the one test that is new: it replaces a skip branch that used to
+cover an installed `plainsong` too old to carry the module, which cannot happen
+now that the floor in `pyproject.toml` is 1.4.0.
 """
 
 from __future__ import annotations
@@ -164,38 +168,19 @@ class TestThereIsOneCopy(unittest.TestCase):
         self.assertIn("from .localhost import", text)
         self.assertIn('host_is_local(self.headers.get("Host", ""))', text)
 
-    def test_this_copy_still_agrees_with_the_compilers_when_it_is_installed(self):
-        """The two are the same check and must answer the same, so that
-        collapsing this file into a re-export is a no-op when the floor rises.
-
-        Skipped against a `plainsong` older than the release that publishes
-        `runtime.localhost` -- which is why this copy exists at all."""
-        try:
-            from plainsong.runtime import localhost as upstream
-        except ImportError:  # pragma: no cover - depends on the installed version
-            self.skipTest("the installed plainsong predates runtime.localhost")
+    def test_this_copy_is_genuinely_the_compilers(self):
+        """Not "agrees with" -- *is*. A re-export cannot drift from the thing
+        it re-exports because there is only one function object; this is what
+        makes the two bugs above structurally impossible to reintroduce here,
+        rather than merely untested."""
+        from plainsong.runtime import localhost as upstream
 
         from plainsong_mcp import localhost as here
 
-        cases = [
-            "localhost",
-            "localhost:8765",
-            "127.0.0.1",
-            "127.0.0.1:8765",
-            "127.evil.example",
-            "[::1]",
-            "[::1]:8765",
-            "[::ffff:127.0.0.1]",
-            "[::ffff:8.8.8.8]",
-            "0.0.0.0",
-            "evil.example",
-            "",
-        ]
-        for host in cases:
-            with self.subTest(host=host):
-                self.assertEqual(here.hostname_of(host), upstream.hostname_of(host))
-                self.assertEqual(here.host_is_local(host), upstream.host_is_local(host))
-                self.assertEqual(here.bind_is_loopback(host), upstream.bind_is_loopback(host))
+        self.assertIs(here.hostname_of, upstream.hostname_of)
+        self.assertIs(here.host_is_local, upstream.host_is_local)
+        self.assertIs(here.bind_is_loopback, upstream.bind_is_loopback)
+        self.assertIs(here.LOOPBACK_NAMES, upstream.LOOPBACK_NAMES)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.0.1 — 2026-08-18
+
+`plainsong` 1.4.0 is published, and it carries `plainsong.runtime.localhost` --
+the compiler's copy of the loopback check, which 1.0.0 shipped here as a real
+implementation rather than a re-export, on the explicit understanding that it
+would collapse the day the floor could be raised to the release carrying that
+module. That day is today.
+
+`plainsong_mcp/localhost.py` is now a re-export, the same move `features.py`
+made in 1.0.0: `plainsong_mcp.localhost.host_is_local` is
+`plainsong.runtime.localhost.host_is_local`, not merely a function that answers
+the same way. `server.py` and the test suite import `plainsong_mcp.localhost`
+exactly as before, so nothing that used it had to change. The two faults this
+check exists to prevent -- `127.evil.example` passing `startswith("127.")`, and
+`[::1]` losing its digits to a port-strip that ran before the brackets did --
+cannot come back as a second local drift now, because there is only one
+function object answering the question, not two copies of eight lines that
+happen to agree today.
+
+The dependency floor moves to match:
+
+```toml
+dependencies = ["plainsong>=1.4.0"]
+```
+
+1.1.0 remains a true floor for `features.py`; 1.4.0 is now the binding one, for
+the same reason 1.1.0 was in 1.0.0 -- below it the install succeeds and the
+import of `plainsong.runtime.localhost` fails.
+
+`tests/test_localhost.py` loses the skip branch that used to guard against an
+installed `plainsong` predating the module -- that branch is dead now that the
+floor guarantees the module is there, and a dead skip is worse than no test, so
+it was replaced rather than deleted. What replaced it asserts identity
+(`assertIs`) instead of comparing answers case by case: the old test proved the
+two copies agreed on the cases it thought to try, which is what "agrees with"
+can ever mean about two separate implementations; the new one proves there is
+only one implementation to disagree with itself, which is a stronger claim and
+a shorter test. Every other test in that file is unchanged and still passes --
+they now exercise the compiler's implementation through the re-export, which is
+the point of a re-export.
+
 ## 1.0.0 — 2026-08-18
 
 The first release. Everything below happened before it shipped, so it is

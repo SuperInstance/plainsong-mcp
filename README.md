@@ -20,10 +20,12 @@ That brings in the compiler as well. Neither has any other dependency: the
 protocol, both transports, the session store and the compiler itself are
 written against the standard library. Python 3.10 or newer.
 
-The compiler comes from PyPI as `plainsong>=1.1.0`. That is the first release
+The compiler comes from PyPI as `plainsong>=1.4.0`. 1.1.0 is the first release
 carrying `plainsong.features`, the per-bar analysis this package re-exports
-rather than duplicating, so the floor is a real requirement: below it the
-install succeeds and the import fails.
+rather than duplicating; 1.4.0 is the first carrying `plainsong.runtime.localhost`,
+the loopback check behind the same re-export, so 1.4.0 is now the binding floor.
+Either way the requirement is real: below it the install succeeds and the
+import fails.
 
 ## Point a client at it
 

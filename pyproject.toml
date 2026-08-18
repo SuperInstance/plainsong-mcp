@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "plainsong-mcp"
-version = "1.0.0"
+version = "1.0.1"
 description = "A Model Context Protocol server for Plainsong: many agents, one score."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,10 +22,12 @@ classifiers = [
 # plainsong itself is.
 #
 # 1.1.0 is the first release that publishes `plainsong.features`, which this
-# package re-exports rather than duplicating. Below that it would install and
-# then fail on import, so the floor is a real requirement and not caution.
+# package re-exports rather than duplicating; 1.4.0 is the first that publishes
+# `plainsong.runtime.localhost`, which `plainsong_mcp/localhost.py` now
+# re-exports the same way. The floor is set by the newer of the two -- below
+# 1.4.0 the install would succeed and the import would fail.
 dependencies = [
-    "plainsong>=1.1.0",
+    "plainsong>=1.4.0",
 ]
 
 [project.optional-dependencies]
