@@ -1,6 +1,31 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — 2026-08-18
+
+The first release. Everything below happened before it shipped, so it is
+recorded rather than announced: nobody was running any of the code these
+fixed.
+
+### What it is
+
+Extracted from `plainsong`, where it grew up as `plainsong/mcp/`. The
+compiler and the agent substrate are different products with different
+audiences, so they are now different repositories.
+
+- A Model Context Protocol server over stdio and loopback HTTP. Correct
+  JSON-RPC 2.0: notifications draw no response, unknown methods give -32601,
+  malformed input gives -32700, and a failing tool returns `isError` rather
+  than a protocol error.
+- 27 tools, enumerated from the compiler's own registry rather than maintained
+  twice, so a tool added there appears here automatically.
+- Ensemble sessions: several agents on one score, a voice each, optimistic
+  concurrency with rebase-on-conflict, atomic writes and a shared log.
+- `analyze_features` computes the sixteen per-bar features fleet-jepa-midi
+  perceives.
+
+Fixed on extraction: the notation-reference resource resolved its path by
+walking up from its own file, which silently depended on this package sitting
+inside `plainsong/`. It now asks the installed package where it lives.
 
 ### The loopback check let a domain through, and mishandled IPv6
 
@@ -82,24 +107,3 @@ module re-exports it.
 Nothing that used it had to change. `plainsong_mcp.features` still imports, and
 returns the same objects: `features.BarFeatures is plainsong.features.BarFeatures`
 is `True`. All 91 tests pass against the PyPI release.
-
-## 1.0.0
-
-Extracted from `plainsong`, where it grew up as `plainsong/mcp/`. The
-compiler and the agent substrate are different products with different
-audiences, so they are now different repositories.
-
-- A Model Context Protocol server over stdio and loopback HTTP. Correct
-  JSON-RPC 2.0: notifications draw no response, unknown methods give -32601,
-  malformed input gives -32700, and a failing tool returns `isError` rather
-  than a protocol error.
-- 27 tools, enumerated from the compiler's own registry rather than maintained
-  twice, so a tool added there appears here automatically.
-- Ensemble sessions: several agents on one score, a voice each, optimistic
-  concurrency with rebase-on-conflict, atomic writes and a shared log.
-- `analyze_features` computes the sixteen per-bar features fleet-jepa-midi
-  perceives.
-
-Fixed on extraction: the notation-reference resource resolved its path by
-walking up from its own file, which silently depended on this package sitting
-inside `plainsong/`. It now asks the installed package where it lives.
