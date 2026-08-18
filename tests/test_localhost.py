@@ -101,7 +101,11 @@ class TestHostIsLocal(unittest.TestCase):
         is true on every version and does not ask `is_loopback` anything."""
         import ipaddress
 
-        from plainsong_mcp.localhost import _address
+        # `_address` is private, so it is not part of the re-export --
+        # `plainsong_mcp/localhost.py` mirrors `features.py` and carries
+        # public names only. What this pins is the compiler's own
+        # normalisation, so it is imported from where it is implemented.
+        from plainsong.runtime.localhost import _address
 
         self.assertEqual(_address("::ffff:127.0.0.1"), ipaddress.IPv4Address("127.0.0.1"))
         self.assertEqual(_address("::ffff:8.8.8.8"), ipaddress.IPv4Address("8.8.8.8"))

@@ -41,7 +41,6 @@ from __future__ import annotations
 
 from plainsong.runtime.localhost import (
     LOOPBACK_NAMES,
-    _address,
     bind_is_loopback,
     host_is_local,
     hostname_of,
@@ -49,7 +48,6 @@ from plainsong.runtime.localhost import (
 
 __all__ = [
     "LOOPBACK_NAMES",
-    "_address",
     "bind_is_loopback",
     "host_is_local",
     "hostname_of",
