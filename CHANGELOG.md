@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+### The loopback check let a domain through, and mishandled IPv6
+
+The rebinding guard added below required a loopback `Host`, and matched the
+name with `name.startswith("127.")`. `127.evil.example` starts with those
+characters, is registrable, and can be pointed at 127.0.0.1 — so the test meant
+to recognise the 127/8 block admitted the exact attack the guard exists to
+stop. An address is parsed as an address now.
+
+The same lines read a bracketed IPv6 `Host` wrongly. The brackets are what
+separate the address from the port, so stripping the port first turned `[::1]`
+— which is what a client sends when the port is the default — into `":"`, and a
+loopback caller was refused.
+
+Both faults came over with the code, which was copied from the compiler's web
+server; the compiler had them too and has fixed them the same way. The check
+now lives in `plainsong_mcp/localhost.py` with `tests/test_localhost.py` on it,
+and one of those tests compares this copy's answers against
+`plainsong.runtime.localhost` case by case, so the two cannot drift while both
+exist. **This file should become a re-export**, the way `features.py` did, as
+soon as the `plainsong` floor in `pyproject.toml` can be raised to the release
+carrying that module. It is inline for now because a security fix should not
+wait on a release of a different package.
+
+`bind_is_loopback` is separated from `host_is_local` in the same move: a
+request addressed to `0.0.0.0` is legitimate, and a server *bound* to `0.0.0.0`
+is what the "anyone who can reach this port" warning is for. They had been one
+list answering both questions.
+
+Two cases the original tests did not cover are covered now: a rebound `Host`
+with **no `Origin` header at all** (a non-browser client omits it, so an
+Origin-only guard has nothing to say — the `Host` check has to run first), and
+`[::1]` with no port.
+
 ### The HTTP transport was open to DNS rebinding
 
 `_same_origin` compared `Origin` against `Host` and nothing else. That is
@@ -26,8 +59,6 @@ notice. **This copy is the one people install for MCP.**
 It told the reader to run `python -m plainsong.mcp` — the compiler's copy —
 from inside this package's own `__init__`. It now names `plainsong-mcp` and
 `python -m plainsong_mcp`, both of which were run to confirm they work.
-
-## Unreleased
 
 ### The compiler comes from PyPI, and the duplicated analysis is gone
 
