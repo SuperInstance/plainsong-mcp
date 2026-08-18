@@ -28,6 +28,17 @@ returns the same objects — `features.BarFeatures is plainsong.features.BarFeat
 — so nothing that used it had to change. Do not reintroduce an implementation
 here: if the analysis needs something, it needs it in the compiler.
 
+`plainsong_mcp/localhost.py` is the same job, half done. It holds the loopback
+check the HTTP transport refuses rebound requests with, and the compiler holds
+an identical `plainsong.runtime.localhost`. It is a copy on purpose and only
+for now: the check was two copies of eight inline lines, both of which got
+`127.evil.example` and `[::1]` wrong in the same way, and a security fix should
+not wait on a release of a different package. `tests/test_localhost.py`
+compares this copy's answers against the compiler's case by case, so they
+cannot drift while both exist. **Collapse it to a re-export** as soon as the
+`plainsong` floor in `pyproject.toml` can be raised to the release carrying
+that module.
+
 ## Commands
 
 ```bash

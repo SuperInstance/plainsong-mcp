@@ -341,9 +341,31 @@ class TestHttpTransport(unittest.TestCase):
         )
         self.assertEqual(status, 403)
 
+    def test_a_rebound_host_is_refused_with_no_origin_at_all(self) -> None:
+        """Origin is optional, and a non-browser client simply omits it.
+
+        So the Host check cannot live inside the branch that compares the two:
+        with no Origin to disagree with, an Origin-only guard has nothing to
+        say and lets the request through. `_host_is_local` runs first, before
+        Origin is ever read, and this is the test that holds it there.
+        """
+        status, _ = self.post(message("ping"), {"Host": "evil.example"})
+        self.assertEqual(status, 403)
+
+    def test_a_domain_that_merely_opens_with_127_is_refused(self) -> None:
+        """`name.startswith("127.")` admitted this. It is a registrable domain
+        and can be pointed at 127.0.0.1, which is the whole attack -- so the
+        test meant to recognise the 127/8 block let it through."""
+        for host in ("127.evil.example", "127.0.0.1.evil.example"):
+            with self.subTest(host=host):
+                status, _ = self.post(message("ping"), {"Host": host})
+                self.assertEqual(status, 403)
+
     def test_a_loopback_host_still_works(self) -> None:
         # The guard must not lock out the ordinary case it is protecting.
-        for host in ("127.0.0.1", "localhost", "127.0.0.1:8765"):
+        # `[::1]` with no port is what a client sends when the port is the
+        # default, and stripping a port before the brackets read it as ":".
+        for host in ("127.0.0.1", "localhost", "127.0.0.1:8765", "[::1]", "[::1]:8765"):
             with self.subTest(host=host):
                 status, _ = self.post(message("ping"), {"Host": host})
                 self.assertEqual(status, 200)

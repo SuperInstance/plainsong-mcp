@@ -31,6 +31,7 @@ from plainsong.version import __version__
 
 from . import protocol
 from . import tools as mcp_tools
+from .localhost import bind_is_loopback, host_is_local
 from .protocol import Dispatcher, RpcError
 from .resources import NotFound, Resources
 
@@ -284,16 +285,10 @@ def build_http_handler(server: Server):
         def _host_is_local(self) -> bool:
             """Whether Host names this machine rather than a domain.
 
-            Origin-against-Host alone is defeated by DNS rebinding: point
-            `evil.example` at 127.0.0.1 and both headers read `evil.example`,
-            matching perfectly. A rebound request always carries the attacker's
-            hostname, so requiring a loopback Host breaks it.
+            Origin-against-Host alone is defeated by DNS rebinding; see
+            `localhost.py`, which holds the check and why it is shaped so.
             """
-            host = self.headers.get("Host", "")
-            name = host.rsplit(":", 1)[0].strip("[]").lower() if host else ""
-            return name in {"localhost", "127.0.0.1", "::1", "0.0.0.0", ""} or name.startswith(
-                "127."
-            )
+            return host_is_local(self.headers.get("Host", ""))
 
         def _same_origin(self) -> bool:
             """Refuse cross-origin calls. This is a local tool, not a service."""
@@ -363,7 +358,7 @@ def serve_http(
 
     url = f"http://{host}:{http.server_port}"
     lines = [f"plainsong mcp on {url}", f"workspace {config.paths.workspace}"]
-    if host not in ("127.0.0.1", "localhost", "::1"):
+    if not bind_is_loopback(host):
         lines.append(
             "warning: bound to a non-loopback address -- anyone who can reach this port "
             "can run every tool on this machine's workspace"
