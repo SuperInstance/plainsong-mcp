@@ -326,6 +326,28 @@ class TestHttpTransport(unittest.TestCase):
         status, _ = self.post(message("ping"), {"Origin": "http://elsewhere.example"})
         self.assertEqual(status, 403)
 
+    def test_a_rebound_host_is_refused(self) -> None:
+        """Origin-against-Host alone does not stop DNS rebinding.
+
+        Point `evil.example` at 127.0.0.1 and a browser sends
+        `Host: evil.example` and `Origin: http://evil.example`. Those match
+        perfectly, so a same-origin check passes and the attacker reaches a
+        local tool. What a rebound request cannot do is claim a loopback Host,
+        so that is what gets required.
+        """
+        status, _ = self.post(
+            message("ping"),
+            {"Host": "evil.example", "Origin": "http://evil.example"},
+        )
+        self.assertEqual(status, 403)
+
+    def test_a_loopback_host_still_works(self) -> None:
+        # The guard must not lock out the ordinary case it is protecting.
+        for host in ("127.0.0.1", "localhost", "127.0.0.1:8765"):
+            with self.subTest(host=host):
+                status, _ = self.post(message("ping"), {"Host": host})
+                self.assertEqual(status, 200)
+
     def test_get_reports_what_is_served(self) -> None:
         with urllib.request.urlopen(self.url, timeout=10) as response:
             body = json.loads(response.read().decode("utf-8"))
