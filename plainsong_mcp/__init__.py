@@ -4,8 +4,9 @@ An MCP client -- Claude Code, an editor, an SDK script, a fleet of agents --
 gets the compiler, the library, the specs and the ensemble session without
 shelling out to the CLI.
 
-    python -m plainsong.mcp              # stdio, what most clients start
-    python -m plainsong.mcp --http       # loopback HTTP, for several clients
+    plainsong-mcp                        # stdio, what most clients start
+    plainsong-mcp --http                 # loopback HTTP, for several clients
+    python -m plainsong_mcp              # the same, without the entry point
 
 The pieces: :mod:`protocol` is JSON-RPC and nothing else, :mod:`server` maps MCP
 methods onto the system, :mod:`resources` is what can be read, :mod:`tools` is
