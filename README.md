@@ -1,5 +1,9 @@
 # plainsong-mcp
 
+<p align="center">
+  <img src="assets/images/hero.jpg" alt="Agents composing — the MCP seam between notation and sound" width="640">
+</p>
+
 A Model Context Protocol server for [Plainsong](https://github.com/SuperInstance/plainsong),
 so any agent can read, write and compile music notation — and so several agents
 can work on one score at the same time without overwriting each other.
