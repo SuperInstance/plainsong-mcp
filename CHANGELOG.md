@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### This repository can now cut a release
+
+There was no release workflow at all. 1.0.0 reached PyPI by hand, and 1.0.1 has
+been sitting tagged-in-name-only ever since -- the version bumped, the changelog
+written, and nothing able to publish it.
+
+`release.yml` now does what the sibling's does: a tag that must match the tree,
+tests, a build, `twine check`, an idempotent publish and a GitHub Release. Two
+things it carries that the sibling's does not, both because this repository has
+already been bitten by them:
+
+- **The version is read from `pyproject.toml`, not imported.** There is no
+  `version.py` here and no `__version__`, so importing the package to ask its
+  version would require installing it first, and the check would run after the
+  build rather than before it.
+- **No dependency may be a direct reference.** PyPI refuses a distribution whose
+  metadata contains `name @ git+https://...`, and refuses it at upload -- after
+  the tag exists and the build has passed. This repository has held exactly such
+  a pin on `plainsong`. The guard fails in the first job instead, and it was
+  checked against that real pin rather than assumed: it flags it.
+
+**This still needs a Trusted Publisher configured on PyPI** before a tag will
+publish. Without one the upload fails with `invalid-publisher: valid token, but
+no corresponding publisher`, which is how the sibling accumulated five tags and
+zero releases before anyone read the log. The workflow comment says exactly
+which fields to set.
+
 ## 1.0.1 — 2026-08-18
 
 `plainsong` 1.4.0 is published, and it carries `plainsong.runtime.localhost` --

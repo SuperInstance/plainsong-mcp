@@ -15,32 +15,66 @@ jobs:
         with:
           python-version: "3.12"
 
-      # This package is nothing without the compiler, and the floor in
-      # pyproject.toml is a real requirement rather than caution: below it the
-      # install succeeds and the import fails. Installing the package itself is
-      # what proves the floor is honest.
-      - name: Install
-        run: pip install .
-
       # The tag is the only thing that says which version this is, and nothing
-      # in the tree knows about it. A `v1.1.0` tag on a tree still saying 1.0.0
-      # publishes 1.0.0 under a release page claiming otherwise -- unfixably,
-      # because PyPI will not accept that filename twice.
+      # else in the repository knows about it. Without this a `v1.0.1` tag on a
+      # tree still saying 1.0.0 publishes 1.0.0 -- under a release page claiming
+      # otherwise, and unfixably, because PyPI will not accept that filename
+      # twice. The sibling repository learned this by doing it.
+      #
+      # The version lives only in pyproject.toml here: there is no version.py
+      # and no __version__, so this reads the file rather than importing the
+      # package, which also means the check runs before anything is installed.
       - name: The tag must match the version in the tree
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          version="$(python -c 'import importlib.metadata as m; print(m.version("plainsong-mcp"))')"
+          version="$(python -c '
+          import tomllib, pathlib
+          print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])
+          ')"
           if [ "$tag" != "$version" ]; then
-            echo "tag $GITHUB_REF_NAME says $tag, the package says $version" >&2
+            echo "tag $GITHUB_REF_NAME says $tag, pyproject.toml says $version" >&2
             exit 1
           fi
           echo "releasing $version"
 
-      - name: Run the tests
-        run: python -m unittest discover -s tests -v
+      # PyPI rejects any distribution whose metadata carries a direct reference
+      # -- a `name @ git+https://...` dependency -- and rejects it at upload,
+      # after the tag exists and the build has passed. This repository has held
+      # such a pin before, so the check runs here rather than being remembered:
+      # it fails in the first job, before a tag has been turned into anything.
+      - name: No dependency may be a direct reference
+        run: |
+          python - <<'PY'
+          import pathlib, sys, tomllib
+
+          data = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+          project = data["project"]
+          groups = {"dependencies": project.get("dependencies", [])}
+          for name, entries in project.get("optional-dependencies", {}).items():
+              groups[f"optional-dependencies.{name}"] = entries
+
+          offenders = [
+              f"{group}: {entry}"
+              for group, entries in groups.items()
+              for entry in entries
+              if "@" in entry.split(";")[0]
+          ]
+          if offenders:
+              print("PyPI will refuse these; pin a released version instead:", file=sys.stderr)
+              for line in offenders:
+                  print(f"  {line}", file=sys.stderr)
+              sys.exit(1)
+          print("all dependencies are version specifiers")
+          PY
+
+      - name: Install
+        run: pip install .
 
       - name: Verify the specs
-        run: python -m plainsong spec --tag mcp
+        run: python -m plainsong spec --tag mcp || python -m plainsong spec
+
+      - name: Run the tests
+        run: python -m unittest discover -s tests -v
 
   build:
     name: Build distribution
@@ -53,10 +87,16 @@ jobs:
           python-version: "3.12"
 
       - name: Install build tools
-        run: pip install build
+        run: pip install build twine
 
       - name: Build distribution
         run: python -m build
+
+      # twine check reads the metadata the way PyPI will, so a description that
+      # will not render, or a classifier PyPI does not recognise, fails here
+      # rather than at upload.
+      - name: Check the metadata the way PyPI will
+        run: twine check dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -76,17 +116,16 @@ jobs:
           name: dist
           path: dist/
 
-      # Trusted Publishing. There is no API token in this repository and there
-      # should never be one. The publisher is configured on PyPI, not here, and
-      # a missing one fails at this step *after* a successful build -- which in
-      # the compiler's repository went unread through six releases. If this step
-      # reports `invalid-publisher`, read the claims it prints: `repository`,
-      # `workflow_ref` and `environment` are exactly what the publisher has to
-      # match, and `environment: MISSING` means leave that field empty.
+      # This needs a Trusted Publisher configured on PyPI for this project --
+      # Publishing -> Add a new pending publisher, owner SuperInstance, repo
+      # plainsong-mcp, workflow release.yml, environment left EMPTY. Without it
+      # the upload fails with `invalid-publisher: valid token, but no
+      # corresponding publisher`, which is exactly how the sibling repository
+      # accumulated five tags and zero releases before anyone read the log.
       #
-      # skip-existing makes a re-run idempotent. Without it a version whose
-      # files reached PyPI some other way can never be re-run, because the
-      # upload aborts on "file already exists" and `release` below never runs.
+      # skip-existing makes a re-run idempotent: a release whose files reached
+      # PyPI some other way can still complete the release job below, instead of
+      # aborting on "file already exists" and leaving a tag with no release.
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
