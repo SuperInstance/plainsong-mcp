@@ -1,0 +1,21 @@
+{"action": "open", "agent": "", "summary": "session opened in C at 100 bpm", "time": "2026-08-25T18:31:15+00:00", "version": 1, "voice": ""}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:15+00:00", "version": 2, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 1: seed (all layers 0)", "time": "2026-08-25T18:31:15+00:00", "version": 3, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:15+00:00", "version": 4, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 2: deepened 'air' to 1/3 (heard: note_density)", "time": "2026-08-25T18:31:15+00:00", "version": 5, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 6, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 3: deepened 'sync' to 1/2 (heard: syncopation)", "time": "2026-08-25T18:31:16+00:00", "version": 7, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 8, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 4: deepened 'air' to 2/3 (heard: note_density)", "time": "2026-08-25T18:31:16+00:00", "version": 9, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 10, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 5: deepened 'sync' to 2/2 (heard: syncopation)", "time": "2026-08-25T18:31:16+00:00", "version": 11, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 12, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 6: deepened 'air' to 3/3 (heard: note_density)", "time": "2026-08-25T18:31:16+00:00", "version": 13, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 14, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 7: deepened 'voicing' to 1/4 (heard: note_density)", "time": "2026-08-25T18:31:16+00:00", "version": 15, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 16, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 8: deepened 'voicing' to 2/4 (heard: note_density)", "time": "2026-08-25T18:31:16+00:00", "version": 17, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 18, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 9: deepened 'voicing' to 3/4 (heard: note_density)", "time": "2026-08-25T18:31:16+00:00", "version": 19, "voice": "piano"}
+{"action": "join", "agent": "grower", "summary": "grower took @piano", "time": "2026-08-25T18:31:16+00:00", "version": 20, "voice": "piano"}
+{"action": "write", "agent": "grower", "bars": 2, "summary": "stitch 10: deepened 'voicing' to 4/4 (heard: note_density)", "time": "2026-08-25T18:31:16+00:00", "version": 21, "voice": "piano"}
