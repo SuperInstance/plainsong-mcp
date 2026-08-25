@@ -39,7 +39,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from plainsong.notation.ir import ROLE_CHORDS, ROLE_LYRICS, ROLE_MELODY, ROLE_NOTE, ROLE_PLAYER, Score
+from plainsong.notation.ir import ROLE_CHORDS, ROLE_LYRICS, ROLE_MELODY, ROLE_PLAYER, Score
 from plainsong.runtime.paths import Paths, default_paths
 
 MANIFEST = "manifest.json"
@@ -818,16 +818,36 @@ def _note_count(score: Score) -> int:
         return 0
 
 
+def _layer_roles() -> frozenset[str]:
+    """Line roles that own no voice and speak for no one but the row above them.
+
+    Free text (``ROLE_NOTE``) always; newer compilers add named annotation
+    layers -- ``Vel:`` and any row a composer names, ``Breath:`` included --
+    which pair with the playable row directly above and so belong to whoever
+    wrote that row. Collected by name so this server serves both a compiler
+    that has them and one that does not.
+    """
+    from plainsong.notation import ir
+
+    roles = {ir.ROLE_NOTE}
+    for name in ("ROLE_VELOCITY", "ROLE_ANNOTATION"):
+        role = getattr(ir, name, None)
+        if role:
+            roles.add(role)
+    return frozenset(roles)
+
+
 def _validate(document: str, voice: str) -> tuple[Score, list[str]]:
     """Parse a part in its session header and check it only speaks for its voice."""
     from plainsong.notation import parse
 
     score = parse(document)
     problems = [diag.format() for diag in score.errors()]
+    layers = _layer_roles()
     role = ROLE_VOICES.get(voice)
     for section in score.sections:
         for line in section.lines:
-            if line.role == ROLE_NOTE:
+            if line.role in layers:
                 continue
             if role is not None:
                 if line.role != role:
@@ -913,7 +933,7 @@ def _bar_table(score: Score) -> list[dict[str, Any]]:
     for section in score.sections:
         cells: dict[str, list[Any]] = {}
         for line in section.lines:
-            if line.role == ROLE_NOTE or not line.cells:
+            if line.role in _layer_roles() or not line.cells:
                 continue
             label = voice_label(line.name.lower()) if line.role == ROLE_PLAYER else ROW_LABEL.get(
                 line.role, line.role

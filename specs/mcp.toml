@@ -61,3 +61,9 @@ id = "conductor"
 kind = "python"
 run = "plainsong_mcp.selfcheck:check_conductor_bridge"
 description = "Directives reach the conductor, or the tool says the install has none"
+
+[[check]]
+id = "perception"
+kind = "python"
+run = "plainsong_mcp.selfcheck:check_perception"
+description = "The per-bar trace, the channel audit, and annotation dimensions -- or a clear word that the compiler cannot see them"

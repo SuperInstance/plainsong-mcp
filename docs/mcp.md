@@ -60,7 +60,8 @@ That means the tool surface is roughly:
 - **Ensemble** — `ensemble_open`, `ensemble_join`, `ensemble_leave`,
   `ensemble_read`, `ensemble_write_part`, `ensemble_render`, `ensemble_log`,
   `ensemble_status` (see [ensemble.md](ensemble.md))
-- **Analysis** — `analyze_features`, `apply_directives`
+- **Analysis** — `analyze_features`, `apply_directives`, `perception_trace`,
+  `dimension_stats`, `perception_audit`
 - **Performance** — `stage_reference`, `ensemble_report`, `speech_profiles`,
   `directive_reference`, `conduct_score` (see [performance.md](https://github.com/SuperInstance/plainsong/blob/master/docs/performance.md))
 
@@ -168,3 +169,35 @@ python3 -m plainsong_mcp --list-tools
 
 The spec drives a real server with real JSON-RPC messages, including malformed
 ones. See `specs/mcp.toml`.
+
+## The trace, the audit, and the dimensions a composer names
+
+`analyze_features` returns the per-bar rows alongside their mean, and always
+has. `perception_trace` is those rows and nothing else: a session, a voice,
+a window of bars, sixteen numbers each, no summary to hide behind. The
+pulse-eye retrospective found the loop's summaries — mode majorities, channel
+counts, means — averaged away exactly the events that mattered; the trace is
+the path that does not collapse.
+
+`perception_audit` turns the same rows on the loop itself. Each channel gets
+its variance across bars, its correlation with every other channel, and a
+verdict:
+
+- **DEAD** — zero variance in the whole texture *and* in every single voice.
+  A dial connected to nothing; the heritage eye's tension channel read 0.00
+  in all twenty-nine states for exactly this reason.
+- **COUPLED** — |r| > 0.9 with another channel. One steering dimension
+  wearing two names; the audit groups them so the loop counts real degrees
+  of freedom, not labels.
+- **ALIVE** — everything else.
+
+`dimension_stats` reads one named annotation row (`Breath:`, `Gaze:`, any
+dimension a composer can write) as count, mean, std and a per-bar series
+joined to the notes it marks. It needs a compiler that publishes generic
+annotation rows — as of 2026-08-25 that capability is on the unmerged
+`dynamics-and-swing` branch of SuperInstance/plainsong, built on
+`annotation-rows`, not in a release. On a compiler without it the tool
+answers with an error naming the missing capability and lists nothing;
+nothing is vendored. A `Vel:` or `Breath:` row written into a part is
+accepted either way: on a newer compiler it pairs with the playable row
+above it, and on an older one it is kept as free text.

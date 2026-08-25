@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+### The perception loop gets instruments that do not collapse
+
+Three tools close the seam the pulse-eye retrospective found (tensor-midi,
+2026-08-25): everything a growth loop needed was already in the per-bar
+feature stream, and the summaries averaged it away.
+
+- `perception_trace` -- the per-bar rows of a session, sixteen channels,
+  deliberately no mean. The trace the summaries collapsed, as one call.
+  `analyze_features` keeps returning its rows too, and its description now
+  says why: the seam was consumers collapsing early, not the data being
+  hidden.
+- `perception_audit` -- variance and correlation over the sixteen channels
+  with a verdict each: DEAD (zero variance in the texture and every voice),
+  COUPLED (|r| > 0.9 with another channel -- one steering dimension, not
+  two) or ALIVE. Counts the degrees of freedom a loop actually has. On the
+  gate-1 session: 16 channels, 7 dead, 4 coupled into 1, 6 steering
+  dimensions -- register was the only live growth channel, which is what
+  the growth curves had already shown.
+- `dimension_stats` -- one named annotation row (`Breath:`, anything a
+  composer can name) as mean/std/count and a per-bar series. Gated on a
+  compiler capability that is not in a plainsong release yet (unmerged
+  `dynamics-and-swing` branch, built on `annotation-rows`); without it the
+  tool answers with an error naming the capability, and nothing is vendored.
+
+A part may now carry the annotation layers that shape its own rows (`Vel:`,
+`Breath:`): the ensemble validator no longer refuses them, because they
+speak for the writer's row above them rather than for another voice. On an
+older compiler such a row is kept as free text, exactly as before.
+
 ### This repository can now cut a release
 
 There was no release workflow at all. 1.0.0 reached PyPI by hand, and 1.0.1 has
