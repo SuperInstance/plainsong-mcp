@@ -13,10 +13,39 @@ to read and act on; an exception would end its turn instead.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from . import ensemble as ens
 from . import features as feat
+from . import perception
+
+_NUMBER = re.compile(r"^[+-]?\d+(?:\.\d+)?$")
+"""A numeric annotation token. Mirrors the compiler's own rule exactly: a
+token that is not a number is data a musician can read and a number-cruncher
+cannot, and guessing which words mean numbers would lie about which it was."""
+
+
+def _annotation_eye() -> tuple[Any, str]:
+    """The compiler's annotation reader, or a message naming what is missing.
+
+    Generic annotation rows are a compiler capability this server can only
+    serve when the installed plainsong publishes it. The dependency is soft
+    on purpose: a session without custom rows loses one tool and keeps the
+    other fifteen. Module-level so a test can stand on either side of the
+    gate whichever compiler is installed.
+    """
+    try:
+        from plainsong.features import annotation_stats
+    except ImportError as exc:
+        return None, (
+            "error: this install of plainsong cannot see annotation rows -- "
+            "plainsong.features does not publish annotation_stats (generic "
+            "annotation rows are not in a plainsong release yet; import failed: "
+            f"{exc}). dimension_stats needs a compiler with that capability. "
+            "Everything else on this server still works."
+        )
+    return annotation_stats, ""
 
 
 def _schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -157,6 +186,26 @@ def register(registry: Any, session_root: Any = None) -> None:
         except ens.EnsembleError as exc:
             return f"error: {exc}"
 
+    def _arrangement(session: str, path: str = "", content: str = "") -> tuple[Any, str]:
+        """A session (or a file, or inline notation) as an arrangement."""
+        if session:
+            try:
+                text = _session(session).score()
+            except ens.EnsembleError as exc:
+                return None, f"error: {exc}"
+        else:
+            text, problem = _notation(path, content)
+            if problem:
+                return None, problem
+        from plainsong.notation import arrange, parse
+
+        score = parse(text)
+        if score.has_errors:
+            return None, "error: the notation has errors:\n" + "\n".join(
+                f"  {diag.format()}" for diag in score.errors()
+            )
+        return arrange(score), ""
+
     # -- analysis ------------------------------------------------------------
 
     def analyze_features(
@@ -167,23 +216,9 @@ def register(registry: Any, session_root: Any = None) -> None:
         bars: str = "",
         table: bool = False,
     ) -> Any:
-        from plainsong.notation import arrange, parse
-
-        if session:
-            try:
-                text, problem = _session(session).score(), ""
-            except ens.EnsembleError as exc:
-                return f"error: {exc}"
-        else:
-            text, problem = _notation(path, content)
+        arrangement, problem = _arrangement(session, path, content)
         if problem:
             return problem
-        score = parse(text)
-        if score.has_errors:
-            return "error: the notation has errors:\n" + "\n".join(
-                f"  {diag.format()}" for diag in score.errors()
-            )
-        arrangement = arrange(score)
         found = feat.extract(arrangement, voice=voice)
         first, last = ens.parse_bar_range(bars, len(found))
         window = [entry for entry in found if first <= entry.bar <= last]
@@ -198,6 +233,100 @@ def register(registry: Any, session_root: Any = None) -> None:
         }
         if table:
             report["table"] = feat.format_table(window)
+        return report
+
+    def perception_trace(
+        session: str,
+        voice: str = "",
+        bars: str = "",
+        table: bool = False,
+    ) -> Any:
+        """The per-bar rows themselves -- the trace, never the summary.
+
+        The pulse-eye retrospective found that everything the loop needed was
+        already in this stream and the summaries averaged it away; this tool
+        exists so the bar-level path is one call, not archaeology. It returns
+        no mean on purpose: means live in ``analyze_features``, and a consumer
+        that wants them should have to ask for them.
+        """
+        arrangement, problem = _arrangement(session)
+        if problem:
+            return problem
+        found = feat.extract(arrangement, voice=voice)
+        first, last = ens.parse_bar_range(bars, len(found))
+        window = [entry for entry in found if first <= entry.bar <= last]
+        report: dict[str, Any] = {
+            "session": session,
+            "voice": voice or "(all)",
+            "beats_per_bar": feat.bar_length(arrangement),
+            "tempo": float(arrangement.meta.tempo),
+            "bars": {"total": len(found), "from": first, "to": last},
+            "feature_names": list(feat.FEATURE_NAMES),
+            "per_bar": [entry.as_dict() for entry in window],
+        }
+        if table:
+            report["table"] = feat.format_table(window)
+        return report
+
+    def dimension_stats(session: str, row: str, voice: str = "") -> Any:
+        """See a custom dimension: one named annotation row of a session."""
+        annotation_stats, problem = _annotation_eye()
+        if problem:
+            return problem
+        arrangement, load_problem = _arrangement(session)
+        if load_problem:
+            return load_problem
+        stats = annotation_stats(arrangement, row, voice)
+        if not stats.get("count"):
+            written = sorted({a.name for a in getattr(arrangement, "annotations", ())})
+            return {
+                "error": (
+                    f"no numeric values found for row {row!r}"
+                    + (f" on voice {voice!r}" if voice else "")
+                    + f" in session {session!r}"
+                ),
+                "available_rows": written,
+                "note": (
+                    "a row of words (Gaze: | far . near . |) is data a musician can "
+                    "read and this tool cannot; only numeric tokens are counted"
+                ),
+            }
+        key = row.strip().lower()
+        series: list[dict[str, Any]] = []
+        for annotation in getattr(arrangement, "annotations", ()):
+            if key and annotation.name.lower() != key:
+                continue
+            if voice and annotation.voice != voice:
+                continue
+            if _NUMBER.match(annotation.token.strip()):
+                series.append(
+                    {
+                        "bar": annotation.bar + 1,
+                        "value": float(annotation.token),
+                        "voice": annotation.voice,
+                        "unit": round(annotation.unit, 6),
+                        "target": annotation.target,
+                        "target_kind": annotation.target_kind,
+                    }
+                )
+        return {"session": session, **stats, "per_bar": series}
+
+    def perception_audit(session: str) -> Any:
+        """Which channels can actually steer: variance, coupling, verdicts."""
+        arrangement, problem = _arrangement(session)
+        if problem:
+            return problem
+        views: dict[str, list[Any]] = {"(all)": feat.extract(arrangement)}
+        for track in arrangement.tracks:
+            name = track.name.lstrip("@")
+            if name and name not in views:
+                views[name] = feat.extract(arrangement, voice=name)
+        report = perception.audit(views)
+        report["session"] = session
+        report["thresholds"] = {
+            "dead_below_variance": perception.ZERO_VARIANCE,
+            "coupled_above_abs_r": perception.COUPLING,
+        }
         return report
 
     # -- the conductor -------------------------------------------------------
@@ -374,7 +503,10 @@ def register(registry: Any, session_root: Any = None) -> None:
     registry.add(
         "analyze_features",
         "Describe a piece as sixteen numbers per bar -- density, register, tension, "
-        "syncopation, dynamics and the rest -- so a model can perceive what is written.",
+        "syncopation, dynamics and the rest -- so a model can perceive what is written. "
+        "Returns the per-bar rows as well as their mean: the pulse-eye retrospective "
+        "found the events that matter (a pocket lock was one bar among sixteen) live "
+        "at bar resolution, and a consumer that collapses to the mean early loses them.",
         _schema(
             {
                 "path": _string("A .song file to analyse."),
@@ -386,6 +518,56 @@ def register(registry: Any, session_root: Any = None) -> None:
             }
         ),
         analyze_features,
+    )
+    registry.add(
+        "perception_trace",
+        "Read a session as a per-bar trace of all sixteen features -- every bar, every "
+        "channel, and deliberately no mean. The pulse-eye retrospective found the loop's "
+        "summaries averaged away exactly the events that mattered; this is the trace "
+        "those summaries collapsed, as one call. Consumers must not collapse it early "
+        "either: read bars, not averages, when judging a change.",
+        _schema(
+            {
+                "session": _string("Session name."),
+                "voice": _string("One voice by name. Default is the whole texture."),
+                "bars": _string("Bars to trace, such as '9-16'. Default is all of them."),
+                "table": _boolean("Also return a fixed-width table for reading."),
+            },
+            ["session"],
+        ),
+        perception_trace,
+    )
+    registry.add(
+        "dimension_stats",
+        "See one custom dimension of a session: a named annotation row (Breath:, Gaze:, "
+        "anything a composer can write) as count, mean, std and a per-bar series. The "
+        "eye must see custom dimensions, not just velocity. Needs a compiler that "
+        "publishes generic annotation rows; on one that does not, this answers with an "
+        "error naming the missing capability and nothing else is affected.",
+        _schema(
+            {
+                "session": _string("Session name."),
+                "row": _string("The annotation row to read, such as 'Breath' for Breath:."),
+                "voice": _string("Only values marking this voice, such as 'melody'."),
+            },
+            ["session", "row"],
+        ),
+        dimension_stats,
+    )
+    registry.add(
+        "perception_audit",
+        "Audit a session's sixteen feature channels for ones that cannot steer. Each "
+        "channel gets its variance across bars and a verdict: DEAD (zero variance in "
+        "the texture and every voice -- a dial connected to nothing), COUPLED (|r| > 0.9 "
+        "with another channel -- one steering dimension, not two) or ALIVE. Returns the "
+        "correlation pairs and the count of real steering dimensions. Orthogonality of "
+        "steering channels is the difference between growing and stalling; this counts "
+        "the degrees of freedom a loop actually has.",
+        _schema(
+            {"session": _string("Session name.")},
+            ["session"],
+        ),
+        perception_audit,
     )
     registry.add(
         "apply_directives",

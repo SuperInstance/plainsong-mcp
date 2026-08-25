@@ -86,6 +86,34 @@ the vocabulary [fleet-jepa-midi](https://github.com/SuperInstance/fleet-jepa-mid
 perceives. That lets a bandleader read a written score, and makes a corpus of
 notation usable as labelled training data.
 
+Three more instruments serve the perception loop directly, each closing a seam
+the pulse-eye retrospective found (tensor-midi, 2026-08-25): everything the
+loop needed was in the per-bar stream, and the summaries averaged it away.
+
+- `perception_trace` — the per-bar rows of a session, all sixteen channels,
+  and deliberately no mean. A pocket lock was one bar among sixteen; a
+  consumer that reads averages will never see it. `analyze_features` returns
+  these rows too — the seam was never that the data was hidden, but that
+  consumers collapsed it early.
+- `perception_audit` — variance and correlation over the sixteen channels,
+  and a verdict per channel: DEAD (zero variance in the texture and every
+  voice — a dial connected to nothing), COUPLED (|r| > 0.9 with another
+  channel — one steering dimension, not two) or ALIVE. Orthogonality of
+  steering channels is the difference between growing and stalling; the
+  audit counts the degrees of freedom a loop actually has. Run against the
+  seamstress gate-1 session it reads: 16 channels → 6 steering dimensions
+  (7 dead, 4 coupled into 1) — register was the only live growth channel,
+  which is what the growth curves had already shown.
+- `dimension_stats` — one named annotation row of a session (`Breath:`,
+  `Gaze:`, anything a composer can write) as count, mean, std and a per-bar
+  series, so an eye can see custom dimensions, not just velocity. This sits
+  on a compiler capability that is **not in a plainsong release yet**: generic
+  annotation rows live on the unmerged `dynamics-and-swing` branch of
+  SuperInstance/plainsong (built on `annotation-rows`). On a compiler without
+  it the tool answers with an error naming the missing capability, and a
+  `Breath:` row in a part is kept as free text. Nothing is vendored; when the
+  branch merges, the tool starts reading with no change here.
+
 ## Where this came from
 
 This began inside the compiler's repository and was extracted once it was clear

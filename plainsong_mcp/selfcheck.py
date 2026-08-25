@@ -279,3 +279,86 @@ def check_conductor_bridge() -> tuple[bool, str]:
         if "after" not in report:
             return False, f"the conducted result is missing its summary: {sorted(report)}"
         return True, "directives read and applied through plainsong.perform.conduct"
+
+
+def check_perception() -> tuple[bool, str]:
+    """The trace, the custom dimensions and the channel audit, or honest word.
+
+    What this pins is the seam the pulse-eye retrospective found: the events
+    that steer a loop live at bar resolution, so the trace must come back per
+    bar and never as a mean alone; and the channels a loop would steer by
+    must be audited for the ones that are dead or coupled. ``dimension_stats``
+    sits on a compiler capability that is not in a release yet, so on an
+    install without it the check passes when the tool says so clearly -- the
+    same contract the conductor bridge has.
+    """
+    with tempfile.TemporaryDirectory() as directory:
+        server = _server(Path(directory))
+
+        def tool(name: str, arguments: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+            result = _call(
+                server, "tools/call", {"name": name, "arguments": arguments}, identifier=2
+            )["result"]
+            text = result["content"][0]["text"]
+            payload = text
+            if text.lstrip()[:1] == "{":
+                try:
+                    payload = json.loads(text)
+                except (json.JSONDecodeError, ValueError):
+                    payload = text
+            return payload, result
+
+        _call(
+            server,
+            "tools/call",
+            {
+                "name": "ensemble_open",
+                "arguments": {"session": "spec", "key": "Am", "tempo": 96, "bars": 2},
+            },
+        )
+        # The Breath: row is the point: on a compiler with generic annotation
+        # rows it is a dimension dimension_stats can read; on one without, it
+        # is kept as free text and the tool must say the capability is missing.
+        for voice, part in (
+            ("melody", "[A]\nMelody: | A4 . C5 E5 | F4 . A4 C5 |\nBreath: | 0.6 . . . | 0.2 . . . |\n"),
+            ("bass", BASS),
+        ):
+            opened, result = tool(
+                "ensemble_write_part",
+                {
+                    "session": "spec",
+                    "voice": voice,
+                    "agent": "spec",
+                    "content": part,
+                    "base_version": 0,
+                    "summary": "spec write",
+                },
+            )
+            if result["isError"]:
+                return False, f"the fixture would not write: {opened}"
+
+        trace, result = tool("perception_trace", {"session": "spec"})
+        if result["isError"]:
+            return False, f"perception_trace failed: {trace}"
+        if "mean" in trace:
+            return False, "the trace carries the mean it exists to bypass"
+        if len(trace.get("per_bar", [])) != 2 or len(trace["per_bar"][0]["features"]) != 16:
+            return False, f"the trace is not sixteen features over two bars: {sorted(trace)}"
+
+        audit, result = tool("perception_audit", {"session": "spec"})
+        if result["isError"]:
+            return False, f"perception_audit failed: {audit}"
+        verdicts = {channel.get("verdict") for channel in audit.get("channels", {}).values()}
+        if not verdicts <= {"DEAD", "ALIVE", "COUPLED"} or len(audit.get("channels", {})) != 16:
+            return False, f"the audit did not verdict sixteen channels: {sorted(verdicts)}"
+        if audit.get("steering_dimensions", 99) > 16:
+            return False, "the audit counted more steering dimensions than channels"
+
+        dimensions, result = tool("dimension_stats", {"session": "spec", "row": "Breath"})
+        if result["isError"]:
+            if "annotation" not in dimensions:
+                return False, f"dimension_stats failed without naming the capability: {dimensions}"
+            return True, "trace and audit held; annotation rows unavailable and clearly named"
+        if "per_bar" not in dimensions or "mean" not in dimensions:
+            return False, f"dimension_stats answered without its series: {sorted(dimensions)}"
+        return True, "trace, audit and annotation dimensions all read"
