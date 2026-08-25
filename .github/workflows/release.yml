@@ -1,5 +1,12 @@
 name: Release
 
+# If this workflow is not listed on the Actions tab, GitHub has not indexed it.
+# That happens after a repository is deleted and restored: the files come back,
+# the run history does not, and the workflows are not re-registered until a push
+# touches them. `gh api repos/OWNER/REPO/actions/workflows` returning zero while
+# .github/workflows/ plainly contains files is the symptom. A commit that edits
+# a workflow file -- this comment was one -- is what re-registers them.
+
 on:
   push:
     tags:
